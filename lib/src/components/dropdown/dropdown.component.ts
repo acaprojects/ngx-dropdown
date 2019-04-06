@@ -30,6 +30,8 @@ declare global {
     }]
 })
 export class DropdownComponent implements OnChanges, AfterViewInit, ControlValueAccessor {
+    /** CSS class to add to the root element of the component */
+    @Input() public klass = 'default';
     /** List of items to show as options on the dropdown */
     @Input() public items: DropdownItem[] = [];
     /** Active item to display on the dropdown */
