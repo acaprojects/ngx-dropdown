@@ -6,6 +6,7 @@
     height: 2em;
     width: 8em;
     transition: opacity 200ms;
+    user-select: none;
     &.show {
         opacity: 0;
     }
