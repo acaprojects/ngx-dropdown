@@ -1,4 +1,5 @@
-import { Component, ViewContainerRef, ViewEncapsulation, OnInit } from '@angular/core';
+import { Component, ViewContainerRef, ViewEncapsulation, OnInit, ViewChild } from '@angular/core';
+import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 
 import { AppService } from './services/app.service';
 
@@ -14,6 +15,8 @@ const dayjs = day_api;
 export class AppComponent implements OnInit {
 
     public model: { [name: string]: any } = {};
+    /** List scroll viewport */
+    @ViewChild(CdkVirtualScrollViewport) private viewport: CdkVirtualScrollViewport;
 
     constructor(private view: ViewContainerRef, private service: AppService) {
     }
@@ -25,6 +28,18 @@ export class AppComponent implements OnInit {
 
     public reset() {
         this.model.date = dayjs().valueOf();
+    }
+
+    public updateScroll() {
+        setTimeout(() => {
+            if (!this.viewport) {
+                return setTimeout(() => this.updateScroll(), 50);
+            }
+                // Add scroll viewport to element to allow for debugging and easier e2e testing
+            this.viewport.elementRef.nativeElement.scroll_viewport = this.viewport;
+            const model_id = (typeof this.model === 'string' ? this.model : this.model.id);
+            this.viewport.scrollToIndex(10);
+        }, 50);
     }
 
 }

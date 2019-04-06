@@ -1,5 +1,24 @@
 <div class="app">
     <div class="test">
         <dropdown [items]="model.list" [(model)]="model.item" [options]="{ can_filter: true }"></dropdown>
+        <custom-dropdown [header]="header" [contents]="contents" (showChange)="$event ? updateScroll() : null">
+            <ng-template #header>
+                <div class="item" [style.padding]="'.5em'">Header</div>
+            </ng-template>
+            <ng-template #contents>
+                <div class="list" [style.height]="'180px'">
+                    <cdk-virtual-scroll-viewport #viewport [itemSize]="40">
+                        <ng-container *cdkVirtualFor="let item of model.list">
+                            <div class="item" [style.height]="'20px'" [style.padding]="'.5em'" (click)="select(item)">
+                                <div class="text">{{item?.name || item}}</div>
+                                <div class="icon" [class.show]="item?.name ? (item.name === model.name) : item === model">
+                                    <i class="done-icon"></i>
+                                </div>
+                            </div>
+                        </ng-container>
+                    </cdk-virtual-scroll-viewport>
+                </div>
+            </ng-template>
+        </custom-dropdown>
     </div>
 </div>

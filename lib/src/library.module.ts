@@ -10,6 +10,7 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { OverlayModule } from '@acaprojects/ngx-overlays';
 
 import { DropdownComponent } from './components/dropdown/dropdown.component';
+import { CustomDropdownComponent } from './components/custom-dropdown/custom-dropdown.component';
 
 import { LIBRARY_SETTINGS } from './settings';
 
@@ -17,7 +18,8 @@ import * as day_api from 'dayjs';
 const dayjs = day_api;
 
 const COMPONENTS: Type<any>[] = [
-    DropdownComponent
+    DropdownComponent,
+    CustomDropdownComponent
 ];
 
 @NgModule({
@@ -35,9 +37,9 @@ const COMPONENTS: Type<any>[] = [
     ]
 })
 class LibraryModule {
-    public static version = '0.1.0';
+    public static version = '0.2.0';
     private static init = false;
-    private build = dayjs(1554528175000);
+    private build = dayjs(1554594887000);
 
     constructor() {
         if (!LibraryModule.init) {
