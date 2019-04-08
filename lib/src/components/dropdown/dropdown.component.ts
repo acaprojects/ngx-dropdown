@@ -1,10 +1,9 @@
-
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { ViewChild, ElementRef, AfterViewInit, TemplateRef, forwardRef } from '@angular/core';
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
-export type DropdownItem = string | { id: string, name: string, [prop: string]: any };
+export type DropdownItem = string | { id: string; name: string; [prop: string]: any };
 
 export interface IDropdownOptions {
     /** Whether to hide active item from the list */
@@ -23,11 +22,13 @@ declare global {
     selector: 'dropdown',
     templateUrl: './dropdown.component.html',
     styleUrls: ['./dropdown.component.scss'],
-    providers: [{
-        provide: NG_VALUE_ACCESSOR,
-        useExisting: forwardRef(() => DropdownComponent),
-        multi: true
-    }]
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => DropdownComponent),
+            multi: true
+        }
+    ]
 })
 export class DropdownComponent implements OnChanges, AfterViewInit, ControlValueAccessor {
     /** CSS class to add to the root element of the component */
@@ -37,9 +38,9 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
     /** Active item to display on the dropdown */
     @Input() public model: DropdownItem;
     /** Placeholder display string */
-    @Input() public placeholder: string = 'Test Item test test';
+    @Input() public placeholder = 'Test Item test test';
     /** Search filter string */
-    @Input() public search: string
+    @Input() public search: string;
     /** Options for the dropdown display */
     @Input() public options: IDropdownOptions;
     /** Emitter for changes to the active item */
@@ -57,16 +58,18 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
     public filtered_items: DropdownItem[] = [];
     /** Whether to show list tooltip */
     public show: boolean;
+    /** Whether the dropdown is focused */
+    public focus: boolean;
     /** Timeout for closing the tooltip */
     private close_timer: number;
-    
+
     public onChange: (_: DropdownItem) => void;
     public onTouch: (_: DropdownItem) => void;
 
     /** Reference HTML element for getting the font size */
     @ViewChild('ref') private reference: ElementRef<HTMLDivElement>;
     /** Template Reference for the dropdown tooltip contents */
-    @ViewChild(TemplateRef) private dropdown_tooltip: TemplateRef<any>
+    @ViewChild(TemplateRef) private dropdown_tooltip: TemplateRef<any>;
     /** Search input HTML element */
     @ViewChild('input') private input: ElementRef<HTMLInputElement>;
     /** List scroll viewport */
@@ -77,8 +80,9 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
     public ngOnChanges(changes: SimpleChanges): void {
         if (changes.items) {
             // Update the item with the longest display
-            this.longest = this.items.map(i => typeof i === 'string' ? i : i.name)
-                .reduce((a, i) => i.length > a.length ? i : a, '');
+            this.longest = this.items
+                .map(i => (typeof i === 'string' ? i : i.name))
+                .reduce((a, i) => (i.length > a.length ? i : a), '');
             this.filter();
         }
     }
@@ -88,14 +92,14 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
     }
 
     /**
-     * Method for checking if listed items have changed 
+     * Method for checking if listed items have changed
      */
     public trackByFn(index: number, item: DropdownItem) {
         return item ? (typeof item === 'string' ? item : item.id) : index;
     }
 
     /**
-     * Update the value of display relate properties 
+     * Update the value of display relate properties
      */
     public resize() {
         if (this.reference && this.reference.nativeElement) {
@@ -112,14 +116,16 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
             this.filtered_items = this.items;
             // Filter based on search string
             if (this.options && this.options.can_filter && this.search) {
-                this.filtered_items = this.filtered_items
-                    .filter(i => (typeof i === 'string' ? i : i.name).toLowerCase().indexOf(this.search.toLowerCase()) >= 0)
+                this.filtered_items = this.filtered_items.filter(
+                    i => (typeof i === 'string' ? i : i.name).toLowerCase().indexOf(this.search.toLowerCase()) >= 0
+                );
             }
             // Filter out active item
             if (this.options && this.options.hide_active && this.model) {
-                const model_id = (typeof this.model === 'string' ? this.model : this.model.id);
-                this.filtered_items = this.filtered_items
-                    .filter(i => (typeof i === 'string' ? i : i.id).indexOf(model_id) < 0)
+                const model_id = typeof this.model === 'string' ? this.model : this.model.id;
+                this.filtered_items = this.filtered_items.filter(
+                    i => (typeof i === 'string' ? i : i.id).indexOf(model_id) < 0
+                );
             }
         }
         console.log('Items:', this.filtered_items);
@@ -133,7 +139,7 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
         if (this.show) {
             this.updateScroll();
         }
-        this.cancelClose()
+        this.cancelClose();
     }
 
     /**
@@ -143,12 +149,10 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
         if (!this.viewport || !this.scroll_el) {
             return setTimeout(() => this.updateScroll(), 50);
         }
-            // Add scroll viewport to element to allow for debugging and easier e2e testing
+        // Add scroll viewport to element to allow for debugging and easier e2e testing
         this.viewport.elementRef.nativeElement.scroll_viewport = this.viewport;
-        const model_id = (typeof this.model === 'string' ? this.model : this.model.id);
-        this.viewport.scrollToIndex(
-            this.filtered_items.findIndex(i => (typeof i === 'string' ? i : i.id) == model_id)
-        );
+        const model_id = typeof this.model === 'string' ? this.model : this.model.id;
+        this.viewport.scrollToIndex(this.filtered_items.findIndex(i => (typeof i === 'string' ? i : i.id) == model_id));
     }
 
     /**
@@ -161,6 +165,17 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
         this.show = false;
     }
 
+    public change(value: number) {
+        const model_id = typeof this.model === 'string' ? this.model : this.model.id;
+        const index = this.filtered_items.findIndex(i => (typeof i === 'string' ? i : i.id) == model_id);
+        const new_index = index + value;
+        if (new_index >= 0 && new_index < this.filtered_items.length) {
+            this.model = this.filtered_items[new_index];
+            this.modelChange.emit(this.model);
+            setTimeout(() => this.updateScroll(), 100);
+        }
+    }
+
     /**
      * Close the dropdown tooltip
      */
@@ -169,7 +184,7 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
             clearTimeout(this.close_timer);
             this.close_timer = null;
         }
-        this.close_timer = <any>setTimeout(() => this.show = false, 100);
+        this.close_timer = <any>setTimeout(() => (this.show = false), 100);
     }
 
     /**
@@ -189,7 +204,7 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
      * @param value New value
      */
     public writeValue(value: DropdownItem) {
-        this.select(value)
+        this.select(value);
     }
 
     /**
@@ -205,6 +220,6 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
      * @param fn
      */
     public registerOnTouched(fn: (_: DropdownItem) => void): void {
-      this.onTouch = fn;
+        this.onTouch = fn;
     }
 }

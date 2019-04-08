@@ -1,6 +1,12 @@
-<div [class]="'dropdown custom' + (klass ? ' ' + klass : '')" widget tabindex="0" 
-    (window:resize)="resize()" (window:click)="show ? close() : ''" [class.show]="show">
-
+<div
+    [class]="'dropdown custom' + (klass ? ' ' + klass : '')"
+    widget
+    tabindex="0"
+    (keyup.enter)="toggleShow()"
+    (window:resize)="resize()"
+    (window:click)="show ? close() : ''"
+    [class.show]="show"
+>
     <div #ref class="reference"></div>
     <div class="item active" tooltip [content]="dropdown" [(show)]="show" (click)="toggleShow()">
         <ng-container *ngTemplateOutlet="header"></ng-container>
@@ -9,9 +15,13 @@
         <ng-container *ngTemplateOutlet="contents"></ng-container>
     </div>
     <ng-template #dropdown let-pos="position">
-        <div [class]="'dropdown-list custom' + (klass ? ' ' + klass : '')" widget 
-            [style.width]="width + 'px'" [class.reverse]="pos?.y === 'top'" (click)="cancelClose()">
-
+        <div
+            [class]="'dropdown-list custom' + (klass ? ' ' + klass : '')"
+            widget
+            [style.width]="width + 'px'"
+            [class.reverse]="pos?.y === 'top'"
+            (click)="cancelClose()"
+        >
             <div class="item active" [class.placeholder]="!model" (click)="show = !show">
                 <ng-container *ngTemplateOutlet="header"></ng-container>
             </div>

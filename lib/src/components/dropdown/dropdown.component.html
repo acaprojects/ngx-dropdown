@@ -1,21 +1,48 @@
-<div [class]="'dropdown' + (klass ? ' ' + klass : '')" widget tabindex="0" (window:resize)="resize()" (window:click)="show ? close() : ''" [class.show]="show">
+<div
+    [class]="'dropdown' + (klass ? ' ' + klass : '')"
+    widget
+    tabindex="0"
+    (keyup.enter)="toggleShow()"
+    (keydown.arrowup)="$event.preventDefault()"
+    (keydown.arrowdown)="$event.preventDefault()"
+    (keyup.arrowup)="focus ? change(-1) : ''"
+    (keyup.arrowdown)="focus ? change(1) : ''"
+    (focus)="focus = true"
+    (blur)="focus = false"
+    (window:resize)="resize()"
+    (window:click)="show ? close() : ''"
+    [class.show]="show"
+>
     <div #ref class="reference"></div>
-    <div class="item active" tooltip [content]="dropdown" [(show)]="show" (showChange)="updateScroll()" (click)="toggleShow()">
-        <div class="text" [class.placeholder]="!model">{{model?.name || model || placeholder}}</div>
+    <div
+        class="item active"
+        tooltip
+        [content]="dropdown"
+        [(show)]="show"
+        (showChange)="updateScroll()"
+        (click)="toggleShow()"
+    >
+        <div class="text" [class.placeholder]="!model">{{ model?.name || model || placeholder }}</div>
         <div class="icon show">
             <i class="down-icon"></i>
         </div>
     </div>
     <div class="item max">
-        <div class="text">{{longest?.name || longest}}</div>
+        <div class="text">{{ longest?.name || longest }}</div>
         <div class="icon">
             <i class="done-icon"></i>
         </div>
     </div>
     <ng-template #dropdown let-pos="position">
-        <div [class]="'dropdown-list' + (klass ? ' ' + klass : '')" widget [style.width]="width + 'px'" [class.reverse]="pos?.y === 'top'" (click)="cancelClose()">
+        <div
+            [class]="'dropdown-list' + (klass ? ' ' + klass : '')"
+            widget
+            [style.width]="width + 'px'"
+            [class.reverse]="pos?.y === 'top'"
+            (click)="cancelClose()"
+        >
             <div class="item active" [class.placeholder]="!model" (click)="show = !show">
-                <div class="text">{{model?.name || model || placeholder}}</div>
+                <div class="text">{{ model?.name || model || placeholder }}</div>
                 <div class="icon show">
                     <i class="up-icon"></i>
                 </div>
@@ -25,16 +52,21 @@
                     <i class="search-icon"></i>
                 </div>
                 <div class="value">
-                    <input #input [(ngModel)]="search" (ngModelChange)="searchChange.emit($event); filter()" placeholder="Search...">
+                    <input
+                        #input
+                        [(ngModel)]="search"
+                        (ngModelChange)="searchChange.emit($event); filter()"
+                        placeholder="Search..."
+                    />
                 </div>
             </div>
-            <div class="list" [style.height]="(2 * filtered_items.length) + 'em'">
+            <div class="list" [style.height]="2 * filtered_items.length + 'em'">
                 <ng-container *ngIf="filtered_items">
                     <cdk-virtual-scroll-viewport #viewport [itemSize]="2 * font_size">
                         <ng-container *cdkVirtualFor="let item of filtered_items; trackBy: trackByFn">
                             <div class="item" (click)="select(item)">
-                                <div class="text">{{item?.name || item}}</div>
-                                <div class="icon" [class.show]="item?.name ? (item.name === model.name) : item === model">
+                                <div class="text">{{ item?.name || item }}</div>
+                                <div class="icon" [class.show]="item?.name ? item.name === model.name : item === model">
                                     <i class="done-icon"></i>
                                 </div>
                             </div>

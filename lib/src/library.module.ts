@@ -37,9 +37,9 @@ const COMPONENTS: Type<any>[] = [
     ]
 })
 class LibraryModule {
-    public static version = '0.2.0';
+    public static version = '0.2.1';
     private static init = false;
-    private build = dayjs(1554594887000);
+    private build = dayjs(1554719525000);
 
     constructor() {
         if (!LibraryModule.init) {
