@@ -1,6 +1,6 @@
 <div class="app">
     <div class="test">
-        <dropdown [items]="model.list" [(model)]="model.item" [options]="{ can_filter: true }"></dropdown>
+        <dropdown [items]="model.list" [(ngModel)]="model.item" [options]="{ can_filter: true }"></dropdown>
         <custom-dropdown [header]="header" [contents]="contents" (showChange)="$event ? updateScroll() : null">
             <ng-template #header>
                 <div class="item" [style.padding]="'.5em'">Header</div>

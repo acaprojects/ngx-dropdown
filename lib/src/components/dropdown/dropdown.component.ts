@@ -18,6 +18,8 @@ declare global {
     }
 }
 
+type FIELD_TYPE = DropdownItem;
+
 @Component({
     selector: 'dropdown',
     templateUrl: './dropdown.component.html',
@@ -35,16 +37,12 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
     @Input() public klass = 'default';
     /** List of items to show as options on the dropdown */
     @Input() public items: DropdownItem[] = [];
-    /** Active item to display on the dropdown */
-    @Input() public model: DropdownItem;
     /** Placeholder display string */
     @Input() public placeholder = 'Test Item test test';
     /** Search filter string */
     @Input() public search: string;
     /** Options for the dropdown display */
     @Input() public options: IDropdownOptions;
-    /** Emitter for changes to the active item */
-    @Output() public modelChange = new EventEmitter<DropdownItem>();
     /** Emitter for changes to the search filter string */
     @Output() public searchChange = new EventEmitter<string>();
 
@@ -63,8 +61,13 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
     /** Timeout for closing the tooltip */
     private close_timer: number;
 
-    public onChange: (_: DropdownItem) => void;
-    public onTouch: (_: DropdownItem) => void;
+    /** Selected dropdown item */
+    public selected: FIELD_TYPE;
+
+    /** Form control on change handler */
+    private _onChange: (_: FIELD_TYPE) => void;
+    /** Form control on touch handler */
+    private _onTouch: (_: FIELD_TYPE) => void;
 
     /** Reference HTML element for getting the font size */
     @ViewChild('ref') private reference: ElementRef<HTMLDivElement>;
@@ -121,8 +124,8 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
                 );
             }
             // Filter out active item
-            if (this.options && this.options.hide_active && this.model) {
-                const model_id = typeof this.model === 'string' ? this.model : this.model.id;
+            if (this.options && this.options.hide_active && this.selected) {
+                const model_id = typeof this.selected === 'string' ? this.selected : this.selected.id;
                 this.filtered_items = this.filtered_items.filter(
                     i => (typeof i === 'string' ? i : i.id).indexOf(model_id) < 0
                 );
@@ -151,7 +154,7 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
         }
         // Add scroll viewport to element to allow for debugging and easier e2e testing
         this.viewport.elementRef.nativeElement.scroll_viewport = this.viewport;
-        const model_id = typeof this.model === 'string' ? this.model : this.model.id;
+        const model_id = typeof this.selected === 'string' ? this.selected : this.selected.id;
         this.viewport.scrollToIndex(this.filtered_items.findIndex(i => (typeof i === 'string' ? i : i.id) == model_id));
     }
 
@@ -160,18 +163,22 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
      * @param item New active item
      */
     public select(item: DropdownItem) {
-        this.model = item;
-        this.modelChange.emit(this.model);
+        this.selected = item;
         this.show = false;
+        if (this._onChange) {
+            this._onChange(this.selected);
+        }
     }
 
     public change(value: number) {
-        const model_id = typeof this.model === 'string' ? this.model : this.model.id;
+        const model_id = typeof this.selected === 'string' ? this.selected : this.selected.id;
         const index = this.filtered_items.findIndex(i => (typeof i === 'string' ? i : i.id) == model_id);
         const new_index = index + value;
         if (new_index >= 0 && new_index < this.filtered_items.length) {
-            this.model = this.filtered_items[new_index];
-            this.modelChange.emit(this.model);
+            this.selected = this.filtered_items[new_index];
+            if (this._onChange) {
+                this._onChange(this.selected);
+            }
             setTimeout(() => this.updateScroll(), 100);
         }
     }
@@ -198,28 +205,28 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
             }
         }, 50);
     }
-
     /**
-     * Callback when form control value has changed
-     * @param value New value
+     * Update local value when form control value is changed
+     * @param value The new value for the component
      */
-    public writeValue(value: DropdownItem) {
-        this.select(value);
+    public writeValue(value: FIELD_TYPE) {
+        this.selected = value;
+        this.show = false;
     }
 
     /**
-     * Register on change callback given for form control
-     * @param fn
+     * Registers a callback function that is called when the control's value changes in the UI.
+     * @param fn The callback function to register
      */
-    public registerOnChange(fn: (_: DropdownItem) => void): void {
-        this.onChange = fn;
+    public registerOnChange(fn: (_: FIELD_TYPE) => void): void {
+        this._onChange = fn;
     }
 
     /**
-     * Register on touched callback given for form control
-     * @param fn
+     * Registers a callback function is called by the forms API on initialization to update the form model on blur.
+     * @param fn The callback function to register
      */
-    public registerOnTouched(fn: (_: DropdownItem) => void): void {
-        this.onTouch = fn;
+    public registerOnTouched(fn: (_: FIELD_TYPE) => void): void {
+        this._onTouch = fn;
     }
 }

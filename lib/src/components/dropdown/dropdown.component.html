@@ -22,7 +22,7 @@
         (showChange)="updateScroll()"
         (click)="toggleShow()"
     >
-        <div class="text" [class.placeholder]="!model">{{ model?.name || model || placeholder }}</div>
+        <div class="text" [class.placeholder]="!selected">{{ selected?.name || selected || placeholder }}</div>
         <div class="icon show">
             <i class="down-icon"></i>
         </div>
@@ -41,8 +41,8 @@
             [class.reverse]="pos?.y === 'top'"
             (click)="cancelClose()"
         >
-            <div class="item active" [class.placeholder]="!model" (click)="show = !show">
-                <div class="text">{{ model?.name || model || placeholder }}</div>
+            <div class="item active" [class.placeholder]="!selected" (click)="show = !show">
+                <div class="text">{{ selected?.name || selected || placeholder }}</div>
                 <div class="icon show">
                     <i class="up-icon"></i>
                 </div>
@@ -66,7 +66,7 @@
                         <ng-container *cdkVirtualFor="let item of filtered_items; trackBy: trackByFn">
                             <div class="item" (click)="select(item)">
                                 <div class="text">{{ item?.name || item }}</div>
-                                <div class="icon" [class.show]="item?.name ? item.name === model.name : item === model">
+                                <div class="icon" [class.show]="item?.name ? item.name === selected.name : item === selected">
                                     <i class="done-icon"></i>
                                 </div>
                             </div>
