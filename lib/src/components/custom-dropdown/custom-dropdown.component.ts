@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, ViewChild, TemplateRef, ElementRef, Output, EventEmitter } from '@angular/core';
 
 @Component({
-    selector: 'custom-dropdown',
+    selector: 'a-custom-dropdown',
     templateUrl: './custom-dropdown.component.html',
     styleUrls: ['./custom-dropdown.component.scss']
 })

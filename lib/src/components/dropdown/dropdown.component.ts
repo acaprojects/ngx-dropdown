@@ -21,7 +21,7 @@ declare global {
 type FIELD_TYPE = DropdownItem;
 
 @Component({
-    selector: 'dropdown',
+    selector: 'a-dropdown',
     templateUrl: './dropdown.component.html',
     styleUrls: ['./dropdown.component.scss'],
     providers: [

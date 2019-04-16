@@ -1,7 +1,7 @@
 <div class="app">
     <div class="test">
-        <dropdown [items]="model.list" [(ngModel)]="model.item" [options]="{ can_filter: true }"></dropdown>
-        <custom-dropdown [header]="header" [contents]="contents" (showChange)="$event ? updateScroll() : null">
+        <a-dropdown [items]="model.list" [(ngModel)]="model.item" [options]="{ can_filter: true }"></a-dropdown>
+        <a-custom-dropdown [header]="header" [contents]="contents" (showChange)="$event ? updateScroll() : null">
             <ng-template #header>
                 <div class="item" [style.padding]="'.5em'">Header</div>
             </ng-template>
@@ -19,6 +19,6 @@
                     </cdk-virtual-scroll-viewport>
                 </div>
             </ng-template>
-        </custom-dropdown>
+        </a-custom-dropdown>
     </div>
 </div>
