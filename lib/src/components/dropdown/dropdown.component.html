@@ -60,19 +60,22 @@
                     />
                 </div>
             </div>
-            <div class="list" [style.height]="2 * filtered_items.length + 'em'">
-                <ng-container *ngIf="filtered_items">
+            <div class="list" [style.height]="2 * (filtered_items.length || 1) + 'em'">
+                <ng-container *ngIf="filtered_items && filtered_items.length > 0; else noItems">
                     <cdk-virtual-scroll-viewport #viewport [itemSize]="2 * font_size">
                         <ng-container *cdkVirtualFor="let item of filtered_items; trackBy: trackByFn">
                             <div class="item" (click)="select(item)">
                                 <div class="text">{{ item?.name || item }}</div>
-                                <div class="icon" [class.show]="item?.name ? item.name === selected.name : item === selected">
+                                <div class="icon" [class.show]="item?.name && selected ? item.name === selected.name : item === selected">
                                     <i class="done-icon"></i>
                                 </div>
                             </div>
                         </ng-container>
                     </cdk-virtual-scroll-viewport>
                 </ng-container>
+                <ng-template #noItems>
+                    <div class="item no-items"><div class="text">{{(options ? options.no_item_text : '') || 'No items'}}</div></div>
+                </ng-template>
             </div>
         </div>
     </ng-template>

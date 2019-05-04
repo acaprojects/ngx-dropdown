@@ -7,9 +7,11 @@ export type DropdownItem = string | { id: string; name: string; [prop: string]: 
 
 export interface IDropdownOptions {
     /** Whether to hide active item from the list */
-    hide_active: boolean;
+    hide_active?: boolean;
     /** Whether to show filter input field */
-    can_filter: boolean;
+    can_filter?: boolean;
+/** Display string for no items displayed */
+    no_item_text?: string;
 }
 
 declare global {
@@ -143,6 +145,11 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
             this.updateScroll();
         }
         this.cancelClose();
+        setTimeout(() => {
+            if (this.input) {
+                this.input.nativeElement.focus();
+            }
+        }, 100);
     }
 
     /**
@@ -154,8 +161,10 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
         }
         // Add scroll viewport to element to allow for debugging and easier e2e testing
         this.viewport.elementRef.nativeElement.scroll_viewport = this.viewport;
-        const model_id = typeof this.selected === 'string' ? this.selected : this.selected.id;
-        this.viewport.scrollToIndex(this.filtered_items.findIndex(i => (typeof i === 'string' ? i : i.id) == model_id));
+        const model_id = typeof this.selected === 'string'
+            ? this.selected
+            : (this.selected ? this.selected.id : null);
+        this.viewport.scrollToIndex(this.filtered_items.findIndex(i => (typeof i === 'string' ? i : i.id) === model_id));
     }
 
     /**
