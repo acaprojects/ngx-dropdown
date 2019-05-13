@@ -3,7 +3,7 @@ import { ViewChild, ElementRef, AfterViewInit, TemplateRef, forwardRef } from '@
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
-export type DropdownItem = string | { id: string; name: string; [prop: string]: any };
+export type DropdownItem = { id: string; name: string; [prop: string]: any };
 
 export interface IDropdownOptions {
     /** Whether to hide active item from the list */
@@ -38,9 +38,9 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
     /** CSS class to add to the root element of the component */
     @Input() public klass = 'default';
     /** List of items to show as options on the dropdown */
-    @Input() public items: DropdownItem[] = [];
+    @Input() public items: (FIELD_TYPE | string)[] = [];
     /** Placeholder display string */
-    @Input() public placeholder = 'Test Item test test';
+    @Input() public placeholder = 'Select item';
     /** Search filter string */
     @Input() public search: string;
     /** Options for the dropdown display */
@@ -48,24 +48,25 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
     /** Emitter for changes to the search filter string */
     @Output() public searchChange = new EventEmitter<string>();
 
+    /** List of formatted dropdown items */
+    public list: FIELD_TYPE[];
     /** Item with the longest name to use for sizing purposes */
-    public longest: DropdownItem;
+    public longest: FIELD_TYPE;
     /** Font size of 1em in pixels */
     public font_size = 16;
     /** Width of the dropdown */
     public width = 128;
     /** Filtered items */
-    public filtered_items: DropdownItem[] = [];
+    public filtered_items: FIELD_TYPE[] = [];
     /** Whether to show list tooltip */
     public show: boolean;
     /** Whether the dropdown is focused */
     public focus: boolean;
-    /** Timeout for closing the tooltip */
-    private close_timer: number;
-
     /** Selected dropdown item */
     public selected: FIELD_TYPE;
 
+    /** Timeout for closing the tooltip */
+    private close_timer: number;
     /** Form control on change handler */
     private _onChange: (_: FIELD_TYPE) => void;
     /** Form control on touch handler */
@@ -84,10 +85,10 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
 
     public ngOnChanges(changes: SimpleChanges): void {
         if (changes.items) {
+            this.list = this.items.map((v) => (v instanceof Object ? (v as DropdownItem) : { id: v, name: v }));
             // Update the item with the longest display
-            this.longest = this.items
-                .map(i => (typeof i === 'string' ? i : i.name))
-                .reduce((a, i) => (i.length > a.length ? i : a), '');
+            this.longest = this.list
+                .reduce((a, i) => (i.name.length > a.name.length ? i : a), { id: '', name: '' });
             this.filter();
         }
     }
@@ -99,7 +100,7 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
     /**
      * Method for checking if listed items have changed
      */
-    public trackByFn(index: number, item: DropdownItem) {
+    public trackByFn(index: number, item: FIELD_TYPE) {
         return item ? (typeof item === 'string' ? item : item.id) : index;
     }
 
@@ -117,8 +118,8 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
      * Filter the item list to be displayed
      */
     public filter() {
-        if (this.items) {
-            this.filtered_items = this.items;
+        if (this.list) {
+            this.filtered_items = this.list;
             // Filter based on search string
             if (this.options && this.options.can_filter && this.search) {
                 this.filtered_items = this.filtered_items.filter(
@@ -155,7 +156,7 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
     /**
      * Scroll to the active item in the dropdown list
      */
-    private updateScroll() {
+    public updateScroll() {
         if (!this.viewport || !this.scroll_el) {
             return setTimeout(() => this.updateScroll(), 50);
         }
@@ -171,7 +172,7 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
      * Change the active item
      * @param item New active item
      */
-    public select(item: DropdownItem) {
+    public select(item: FIELD_TYPE) {
         this.selected = item;
         this.show = false;
         if (this._onChange) {

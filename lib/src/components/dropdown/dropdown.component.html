@@ -22,13 +22,13 @@
         (showChange)="updateScroll()"
         (click)="toggleShow()"
     >
-        <div class="text" [class.placeholder]="!selected">{{ selected?.name || selected || placeholder }}</div>
+        <div class="text" [class.placeholder]="!selected">{{ selected?.name || placeholder }}</div>
         <div class="icon show">
             <i class="down-icon"></i>
         </div>
     </div>
     <div class="item max">
-        <div class="text">{{ longest?.name || longest }}</div>
+        <div class="text">{{ longest?.name }}</div>
         <div class="icon">
             <i class="done-icon"></i>
         </div>
@@ -42,7 +42,7 @@
             (click)="cancelClose()"
         >
             <div class="item active" [class.placeholder]="!selected" (click)="show = !show">
-                <div class="text">{{ selected?.name || selected || placeholder }}</div>
+                <div class="text">{{ selected?.name || placeholder }}</div>
                 <div class="icon show">
                     <i class="up-icon"></i>
                 </div>
