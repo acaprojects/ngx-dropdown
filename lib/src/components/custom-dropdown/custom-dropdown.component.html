@@ -8,7 +8,7 @@
     [class.show]="show"
 >
     <div #ref class="reference"></div>
-    <div class="item active" tooltip [content]="dropdown" [(show)]="show" (click)="toggleShow()">
+    <div class="item active" a-tooltip [content]="dropdown" [(show)]="show" (click)="toggleShow()">
         <ng-container *ngTemplateOutlet="header"></ng-container>
     </div>
     <div class="item max" *ngIf="!show">

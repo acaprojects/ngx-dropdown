@@ -134,7 +134,6 @@ export class DropdownComponent implements OnChanges, AfterViewInit, ControlValue
                 );
             }
         }
-        console.log('Items:', this.filtered_items);
     }
 
     /**
