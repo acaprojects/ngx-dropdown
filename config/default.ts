@@ -3,19 +3,16 @@ import * as del from 'del';
 import * as gulp from 'gulp';
 import * as bump from 'gulp-bump';
 import * as replace from 'gulp-string-replace';
-import * as runSequence from 'run-sequence';
+import * as moment from 'moment';
 import * as yargs from 'yargs';
 import * as fs from 'fs-extra';
-import * as dayjs from 'dayjs';
-
-import { packagr } from './ng';
 
 const npmconfig = require('../package.json');
 const settings = require('../src/assets/settings.json');
 
 const argv = yargs.argv;
 
-export let baseHref = '/docs/widgets';
+export let baseHref = '/docs/dropdowns';
 
 const prod_settings = {
     composer: {
@@ -45,32 +42,6 @@ const mergeJSON = (a, b) => {
  * Nuke old build assetts.
  */
 gulp.task('clean', () => ((...globs: string[]) => del(globs))('dist/', 'compiled/', '_package'));
-
-gulp.task('default', ['build']);
-
-gulp.task('e2e', ['serve', 'test'])
-
-gulp.task('package:lib', () => packagr());
-
-gulp.task('pre-build:lib', (next) => runSequence('update:version-lib', next));
-
-gulp.task('pre-build', (next) => {
-    const sequence = ['check:route', 'sw:base', 'update:version', 'settings:update', next];
-    if (!argv.mock && argv.demo !== true) { sequence.splice(2, 0, ['remove:mock']); }
-    runSequence(...sequence);
-});
-
-gulp.task('pre-serve', (next) => runSequence(
-    'check:flags',
-    next
-));
-
-gulp.task('post-build', (next) => {
-    const sequence = ['build:manifest', 'settings:reset', 'sw:unbase', 'clean:version', 'fix:service-worker', next];
-    if (argv.demo) { sequence.splice(sequence.length - 2, 0, ['upload']); }
-    if (!argv.mock || argv.demo !== true) { sequence.splice(1, 0, ['add:mock']); }
-    runSequence(...sequence);
-});
 
 gulp.task('build:manifest', (next) => {
     const app = settings.app || {};
@@ -127,13 +98,12 @@ gulp.task('bump', () => {
         .pipe(gulp.dest('./'));
 });
 
-gulp.task('check:route', () => {
+gulp.task('check:route', async () => {
     if (argv.route) {
         console.log('Route set to:', argv.route);
         baseHref = argv.route || baseHref;
         prod_settings.composer.route = argv.route || prod_settings.composer.route;
     }
-    return 'success';
 });
 
 gulp.task('check:flags', (next) => {
@@ -143,38 +113,20 @@ gulp.task('check:flags', (next) => {
         .then(() => next());
 });
 
-gulp.task('update:version', (next) => {
+gulp.task('update:version', () => {
     const v = npmconfig.version;
-    const b = dayjs().startOf('s').valueOf();
+    const b = moment().seconds(0).milliseconds(0).valueOf();
     return gulp.src(['./src/app/services/settings.service.ts']) // Any file globs are supported
         .pipe(replace(/this.log\('SYSTEM', 'Version: [0-9a-zA-Z.-]*'/g, `this.log('SYSTEM', 'Version: ${v}'`, { logs: { enabled: true } }))
-        .pipe(replace(/const built = dayjs\([0-9]*\);/g, `const built = dayjs(${b});`, { logs: { enabled: true } }))
+        .pipe(replace(/const built = moment\([0-9]*\);/g, `const built = moment(${b});`, { logs: { enabled: true } }))
         .pipe(gulp.dest('./src/app/services'));
 });
 
-gulp.task('update:version-lib', (next) => {
-    const v = npmconfig.version;
-    const b = dayjs().startOf('s').valueOf();
-    return gulp.src(['./lib/src/library.module.ts']) // Any file globs are supported
-        .pipe(replace(/public static version = '[0-9a-zA-Z.-]*'/g, `public static version = '${v}'`, { logs: { enabled: true } }))
-        .pipe(replace(/private build = dayjs\([0-9]*\);/g, `private build = dayjs(${b});`, { logs: { enabled: true } }))
-        .pipe(gulp.dest('./lib/src'));
-});
-
-gulp.task('clean:version', (next) => {
+gulp.task('clean:version', () => {
     return gulp.src(['./src/app/services/settings.service.ts']) // Any file globs are supported
         .pipe(replace(/this.log\('SYSTEM', 'Version: [0-9a-zA-Z.-]*'/g, `this.log('SYSTEM', 'Version: local-dev'`, { logs: { enabled: true } }))
-        .pipe(replace(/const built = dayjs\([0-9]*\);/g, `const built = dayjs();`, { logs: { enabled: true } }))
+        .pipe(replace(/const built = moment\([0-9]*\);/g, `const built = moment();`, { logs: { enabled: true } }))
         .pipe(gulp.dest('./src/app/services'));
-});
-
-gulp.task('clean:version-lib', (next) => {
-    const v = npmconfig.version;
-    const b = dayjs().startOf('s').valueOf();
-    return gulp.src(['./lib/src/library.module.ts']) // Any file globs are supported
-        .pipe(replace(/public static version = '[0-9a-zA-Z.-]*'/g, `public static version = 'local-dev'`, { logs: { enabled: true } }))
-        .pipe(replace(/private build = dayjs\([0-9]*\);/g, `private build = dayjs();`, { logs: { enabled: true } }))
-        .pipe(gulp.dest('./lib/src'));
 });
 
 gulp.task('settings:update', (next) => {
@@ -193,12 +145,6 @@ gulp.task('settings:reset', (next) => {
     fs.outputJson('./src/assets/settings.json', s, { spaces: 4 })
         .then(() => next());
 });
-
-gulp.task('fix:service-worker', (next) => runSequence(
-    'fix:service-worker:config',
-    'fix:service-worker:runtime',
-    next
-));
 
 gulp.task('fix:service-worker:config', () => {
     return gulp.src(['./dist/ngsw.json']) // Any file globs are supported
@@ -223,3 +169,23 @@ gulp.task('usage', () => {
     console.log(`    test  - Run tests`);
     console.log(`    usage - List available gulp tasks`);
 });
+
+gulp.task('pre-build', (done) => {
+    const sequence = ['check:route', 'sw:base', 'update:version', 'settings:update'];
+    if (!argv.mock && argv.demo !== true) { sequence.splice(2, 0, 'remove:mock'); }
+    return gulp.series(...sequence)(done);
+});
+
+gulp.task('pre-serve', gulp.series('check:flags'));
+
+gulp.task('post-build', (done) => {
+    const sequence = ['build:manifest', 'settings:reset', 'sw:unbase', 'clean:version', 'fix:service-worker'];
+    if (argv.demo) { sequence.splice(sequence.length - 2, 0, 'upload'); }
+    if (!argv.mock || argv.demo !== true) { sequence.splice(1, 0, 'add:mock'); }
+    return gulp.series(...sequence)(done);
+});
+
+gulp.task('fix:service-worker', gulp.series(
+    'fix:service-worker:config',
+    'fix:service-worker:runtime'
+));

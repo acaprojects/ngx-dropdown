@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule, Type } from '@angular/core';
 import { FormsModule } from '@angular/forms'
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { OverlayModule } from '@acaprojects/ngx-overlays';
+import { AOverlayModule } from '@acaprojects/ngx-overlays';
 
 import { DropdownComponent } from './components/dropdown/dropdown.component';
 import { CustomDropdownComponent } from './components/custom-dropdown/custom-dropdown.component';
@@ -30,16 +30,16 @@ const COMPONENTS: Type<any>[] = [
         CommonModule,
         FormsModule,
         ScrollingModule,
-        OverlayModule
+        AOverlayModule
     ],
     exports: [
         ...COMPONENTS
     ]
 })
 class LibraryModule {
-    public static version = '0.3.1';
+    public static version = '0.3.2';
     private static init = false;
-    private build = dayjs(1556948809000);
+    private build = dayjs(1557718725000);
 
     constructor() {
         if (!LibraryModule.init) {
