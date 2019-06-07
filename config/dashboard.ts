@@ -1,5 +1,5 @@
 
-import * as util from 'gulp-util';
+const util = require('gulp-util');
 
 const colorMap = {
     'development': 'yellow',
@@ -8,7 +8,7 @@ const colorMap = {
     'prod': 'green'
 };
 
-export let Dashboard = {
+const dash = {
     show: (env: string) => {
         const color = colorMap[env] || 'magenta';
         console.log(`
@@ -39,4 +39,8 @@ export let Dashboard = {
               =================================================
 `);
     }
+};
+
+module.exports = {
+    Dashboard: dash
 };

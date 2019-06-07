@@ -1,191 +1,72 @@
 
-import * as del from 'del';
-import * as gulp from 'gulp';
-import * as bump from 'gulp-bump';
-import * as replace from 'gulp-string-replace';
-import * as moment from 'moment';
-import * as yargs from 'yargs';
-import * as fs from 'fs-extra';
+const del = require('del');
+const gulp = require('gulp');
+const yargs = require('yargs');
+const replace = require('gulp-string-replace');
+const dayjs = require('dayjs');
 
+const { ng, version } = require('./cmd');
+const { Dashboard } = require('./dashboard');
+
+/** Node project configuration */
 const npmconfig = require('../package.json');
-const settings = require('../src/assets/settings.json');
-
+/** Command line arguments */
 const argv = yargs.argv;
+/** Angular CLI arguments */
+const ngargs: string[] = [];
 
-export let baseHref = '/docs/dropdowns';
+const library_path = './projects/library';
 
-const prod_settings = {
-    composer: {
-        domain: '',
-        route: baseHref,
-        protocol: 'https:',
-        local_login: false
-    },
-    mock: false
-};
+if (argv.prod || (argv.demo === true && argv.prod !== 'false')) { ngargs.push('--prod'); }
+if (argv.aot || (argv.demo === true && argv.aot !== 'false')) { ngargs.push('--aot'); }
 
-const mergeJSON = (a, b) => {
-    for (const f in b) {
-        if (b.hasOwnProperty(f)) {
-            if (!a[f]) {
-                a[f] = b[f];
-            } else if (typeof b[f] === 'object' && typeof a[f] === 'object') {
-                mergeJSON(a[f], b[f]);
-            } else {
-                a[f] = b[f];
-            }
-        }
-    }
-};
+Dashboard.show(argv.prod ? 'prod' : 'dev');
 
-/**
- * Nuke old build assetts.
- */
+/** Nuke old build assets */
 gulp.task('clean', () => ((...globs: string[]) => del(globs))('dist/', 'compiled/', '_package'));
 
-gulp.task('build:manifest', (next) => {
-    const app = settings.app || {};
-    const manifest: any = {
-        short_name: app.short_name || 'ACA Staff Application',
-        name: app.name || 'ACA Staff Application',
-        icons: [
-            {
-                src: 'assets/icon/launch.png',
-                sizes: '196x196',
-                type: 'png'
-            }
-        ],
-        start_url: 'index.html',
-        background_color: '#000',
-        theme_color: '#000',
-        display: 'standalone'
-    };
-    fs.outputJson('./dist/manifest.json', manifest, { spaces: 4 })
-        .then(() => next());
-});
+/** Build the library */
+gulp.task('ng:build', () => ng('build', 'library', ...ngargs));
 
-gulp.task('remove:mock', () => {
-    console.log('Removing mock import');
-    return gulp.src(['./src/app/app.module.ts', './src/app/app.component.ts']) // Any file globs are supported
-        .pipe(replace(new RegExp(`// import './shared/mock';`, 'g'), `import './shared/mock';`, { logs: { enabled: false } })) // Prevent adding new comment markers
-        .pipe(replace(new RegExp(`import './shared/mock';`, 'g'), `// import './shared/mock';`, { logs: { enabled: false } })) // Comment out import line
-        .pipe(gulp.dest('./src/app'));
-});
+/** Serve the demo with the library */
+gulp.task('ng:serve', () => ng('serve', 'demo', ...ngargs));
 
-gulp.task('add:mock', () => {
-    console.log('Adding mock import');
-    return gulp.src(['./src/app/app.module.ts', './src/app/app.component.ts']) // Any file globs are supported
-        .pipe(replace(new RegExp(`// import './shared/mock';`, 'g'), `import './shared/mock';`, { logs: { enabled: false } }))
-        .pipe(gulp.dest('./src/app'));
-});
-
-gulp.task('sw:base', () => {
-    return gulp.src(['./src/app/app.module.ts', './src/app/app.component.ts']) // Any file globs are supported
-        .pipe(replace(new RegExp('\'__base__', 'g'), `'${baseHref}/`, { logs: { enabled: false } }))
-        .pipe(gulp.dest('./src/app'));
-});
-
-gulp.task('sw:unbase', () => {
-    return gulp.src(['./src/app/app.module.ts', './src/app/app.component.ts']) // Any file globs are supported
-        .pipe(replace(new RegExp(`'${baseHref}/`, 'g'), '\'__base__', { logs: { enabled: false } }))
-        .pipe(gulp.dest('./src/app'));
-});
-
-gulp.task('bump', () => {
-    const type = argv.major ? 'major' : (argv.minor ? 'minor' : 'patch');
-    gulp.src('./package.json')
-        .pipe(bump({ type }))
-        .pipe(gulp.dest('./'));
-});
-
-gulp.task('check:route', async () => {
-    if (argv.route) {
-        console.log('Route set to:', argv.route);
-        baseHref = argv.route || baseHref;
-        prod_settings.composer.route = argv.route || prod_settings.composer.route;
-    }
-});
-
-gulp.task('check:flags', (next) => {
-    const s = JSON.parse(JSON.stringify(settings));
-    s.mock = !!argv.mock;
-    fs.outputJson('./src/assets/settings.json', s, { spaces: 4 })
-        .then(() => next());
-});
-
-gulp.task('update:version', () => {
+/** Update version details to the current time and version */
+gulp.task('version:update', () => {
     const v = npmconfig.version;
-    const b = moment().seconds(0).milliseconds(0).valueOf();
-    return gulp.src(['./src/app/services/settings.service.ts']) // Any file globs are supported
-        .pipe(replace(/this.log\('SYSTEM', 'Version: [0-9a-zA-Z.-]*'/g, `this.log('SYSTEM', 'Version: ${v}'`, { logs: { enabled: true } }))
-        .pipe(replace(/const built = moment\([0-9]*\);/g, `const built = moment(${b});`, { logs: { enabled: true } }))
-        .pipe(gulp.dest('./src/app/services'));
+    const b = dayjs().startOf('s').valueOf();
+    return gulp.src([`${library_path}/src/lib/library.module.ts`]) // Any file globs are supported
+        .pipe(replace(/public static version = '[0-9a-zA-Z.-]*'/g, `public static version = '${v}'`, { logs: { enabled: true } }))
+        .pipe(replace(/private build = dayjs\([0-9]*\);/g, `private build = dayjs(${b});`, { logs: { enabled: true } }))
+        .pipe(gulp.dest(`${library_path}/src/lib`));
 });
 
-gulp.task('clean:version', () => {
-    return gulp.src(['./src/app/services/settings.service.ts']) // Any file globs are supported
-        .pipe(replace(/this.log\('SYSTEM', 'Version: [0-9a-zA-Z.-]*'/g, `this.log('SYSTEM', 'Version: local-dev'`, { logs: { enabled: true } }))
-        .pipe(replace(/const built = moment\([0-9]*\);/g, `const built = moment();`, { logs: { enabled: true } }))
-        .pipe(gulp.dest('./src/app/services'));
+/** Return version details back to the dev details */
+gulp.task('version:clean', () => {
+    const v = npmconfig.version;
+    const b = dayjs().startOf('s').valueOf();
+    return gulp.src([`${library_path}/src/lib/library.module.ts`]) // Any file globs are supported
+        .pipe(replace(/public static version = '[0-9a-zA-Z.-]*'/g, `public static version = 'local-dev'`, { logs: { enabled: true } }))
+        .pipe(replace(/private build = dayjs\([0-9]*\);/g, `private build = dayjs();`, { logs: { enabled: true } }))
+        .pipe(gulp.dest(`${library_path}/src/lib`));
 });
 
-gulp.task('settings:update', (next) => {
-    const s = JSON.parse(JSON.stringify(settings));
-    mergeJSON(s, prod_settings);
-    s.mock = !!argv.mock || (argv.demo && argv.demo !== 'false');
-    s.env = !!argv.prod ? 'prod' : 'dev';
-    fs.outputJson('./src/assets/settings.json', s, { spaces: 4 })
-        .then(() => next());
+/** Copy root project version into  */
+gulp.task('version:copy', () => {
+    const v = require('../package.json').version;
+    return gulp.src([`${library_path}/package.json`]) // Any file globs are supported
+        .pipe(replace(/"version": "[0-9a-zA-Z.-]*"/g, `"version": "${v}"`, { logs: { enabled: true } }))
+        .pipe(gulp.dest(library_path));
 });
 
-gulp.task('settings:reset', (next) => {
-    const s = JSON.parse(JSON.stringify(settings));
-    s.env = 'dev';
-    s.mock = false;
-    fs.outputJson('./src/assets/settings.json', s, { spaces: 4 })
-        .then(() => next());
-});
+/** Run pre build tasks */
+gulp.task('pre-build', gulp.series('version:copy', 'version:update'));
 
-gulp.task('fix:service-worker:config', () => {
-    return gulp.src(['./dist/ngsw.json']) // Any file globs are supported
-    .pipe(replace(new RegExp('"/', 'g'), `"${baseHref}/`, { logs: { enabled: false } }))
-    .pipe(replace(/"\\\\\/assets\\\\\//g, `"\\\\${baseHref}\\\\/assets\\\\/`, { logs: { enabled: true } }))
-        .pipe(gulp.dest('./dist'));
-});
+/** Run post build tasks */
+gulp.task('post-build', gulp.series('version:clean'));
 
-gulp.task('fix:service-worker:runtime', () => {
-    const parts = npmconfig.name.split('-');
-    return gulp.src(['./dist/ngsw-worker.js']) // Any file globs are supported
-        .pipe(replace(new RegExp('ngsw:', 'g'), `ngsw:${parts.length > 1 ? parts[1] : parts[0]}:`, { logs: { enabled: false } }))
-        .pipe(gulp.dest('./dist'));
-});
+/** Run build tasks */
+gulp.task('build', gulp.series('pre-build', 'ng:build', 'post-build'));
 
-gulp.task('usage', () => {
-    console.log(`Commands:`);
-    console.log(`    build - Build project`);
-    console.log(`    bump  - Update project version`);
-    console.log(`    clean - Nuke old build assets`);
-    console.log(`    lint  - Lint Typescript and Sass files`);
-    console.log(`    test  - Run tests`);
-    console.log(`    usage - List available gulp tasks`);
-});
-
-gulp.task('pre-build', (done) => {
-    const sequence = ['check:route', 'sw:base', 'update:version', 'settings:update'];
-    if (!argv.mock && argv.demo !== true) { sequence.splice(2, 0, 'remove:mock'); }
-    return gulp.series(...sequence)(done);
-});
-
-gulp.task('pre-serve', gulp.series('check:flags'));
-
-gulp.task('post-build', (done) => {
-    const sequence = ['build:manifest', 'settings:reset', 'sw:unbase', 'clean:version', 'fix:service-worker'];
-    if (argv.demo) { sequence.splice(sequence.length - 2, 0, 'upload'); }
-    if (!argv.mock || argv.demo !== true) { sequence.splice(1, 0, 'add:mock'); }
-    return gulp.series(...sequence)(done);
-});
-
-gulp.task('fix:service-worker', gulp.series(
-    'fix:service-worker:config',
-    'fix:service-worker:runtime'
-));
+/** Run serve tasks */
+gulp.task('serve', gulp.series('ng:serve'));

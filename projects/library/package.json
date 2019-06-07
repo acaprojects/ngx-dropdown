@@ -1,0 +1,20 @@
+{
+  "name": "@acaprojects/ngx-overlays",
+  "version": "0.2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "angular",
+    "pipes"
+  ],
+  "description": "Assortment of Pipes for Angular 8+",
+  "homepage": "https://github.com/acaprojects/ngx-overlays#readme",
+  "bugs": {
+      "url": "https://github.com/acaprojects/ngx-overlays/issues"
+  },
+  "peerDependencies": {
+    "@angular/common": "^8.0.0",
+    "@angular/core": "^8.0.0"
+  }
+}
