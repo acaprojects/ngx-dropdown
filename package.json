@@ -1,5 +1,5 @@
 {
-  "name": "ngx-dropdowns-project",
+  "name": "ngx-dropdown-project",
   "version": "0.0.0-development",
   "scripts": {
     "ng": "ng",
@@ -15,7 +15,7 @@
   },
   "private": true,
   "dependencies": {
-    "@acaprojects/ngx-dropdowns": "^1.0.0",
+    "@acaprojects/ngx-dropdown": "^1.0.0",
     "@angular/animations": "~8.0.0",
     "@angular/cdk": "~8.0.0",
     "@angular/common": "~8.0.0",
@@ -63,6 +63,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/acaprojects/ngx-dropdowns.git"
+    "url": "https://github.com/acaprojects/ngx-dropdown.git"
   }
 }
