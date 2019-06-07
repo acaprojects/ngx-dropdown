@@ -1,5 +1,5 @@
 {
-  "name": "@acaprojects/ngx-overlays",
+  "name": "@acaprojects/ngx-dropdowns",
   "version": "0.2.0",
   "publishConfig": {
     "access": "public"
@@ -9,9 +9,9 @@
     "pipes"
   ],
   "description": "Assortment of Pipes for Angular 8+",
-  "homepage": "https://github.com/acaprojects/ngx-overlays#readme",
+  "homepage": "https://github.com/acaprojects/ngx-dropdowns#readme",
   "bugs": {
-      "url": "https://github.com/acaprojects/ngx-overlays/issues"
+      "url": "https://github.com/acaprojects/ngx-dropdowns/issues"
   },
   "peerDependencies": {
     "@angular/common": "^8.0.0",

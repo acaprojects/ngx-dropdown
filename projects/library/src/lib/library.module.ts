@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { AOverlayModule } from '@acaprojects/ngx-overlays';
+import { AOverlayModule } from '@acaprojects/ngx-dropdowns';
 
 import { version } from './settings';
 
