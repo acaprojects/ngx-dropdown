@@ -22,7 +22,7 @@
             [class.reverse]="pos?.y === 'top'"
             (click)="cancelClose()"
         >
-            <div class="item active" [class.placeholder]="!model" (click)="show = !show">
+            <div class="item active" (click)="show = !show">
                 <ng-container *ngTemplateOutlet="header"></ng-container>
             </div>
             <div class="list">
